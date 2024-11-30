@@ -38,7 +38,7 @@ include $(src_dir)/rv32uzbs/Makefrag
 include $(src_dir)/rv32si/Makefrag
 include $(src_dir)/rv32mi/Makefrag
 
-default: all
+default: rv64ui
 
 #--------------------------------------------------------------------
 # Build rules
