@@ -1,3 +1,4 @@
-[submodule "riscv-test-env-custom"]
-	path = riscv-test-env-custom
+[submodule "env"]
+	path = env
 	url = https://github.com/0d41146/riscv-test-env-custom
+
