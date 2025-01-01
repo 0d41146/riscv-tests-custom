@@ -58,11 +58,11 @@ vpath %.S $(src_dir)
 # Build assembly tests
 
 %.dump: %
-	$(RISCV_OBJDUMP) $(BUILD_DIR)/$< > $(BUILD_DIR)/$@
+	$(RISCV_OBJDUMP) $(BUILD_DIR)/$<.elf > $(BUILD_DIR)/$@
 
 %.hex: %
-	$(RISCV_OBJCOPY) -O verilog --verilog-data-width 4 $(BUILD_DIR)/$< $(BUILD_DIR)/$@
-	sed -i '/^@/d' $(BUILD_DIR)/$@
+	$(RISCV_OBJCOPY) --remove-section .tohost -O binary $(BUILD_DIR)/$<.elf $(BUILD_DIR)/$<.bin
+	hexdump -v -e '1/8 "%016x""\n"' $(BUILD_DIR)/$<.bin > $(BUILD_DIR)/$@
 
 %.out: %
 	$(RISCV_SIM) --isa=rv64gch_zfh_zicboz_svnapot_zicntr_zba_zbb_zbc_zbs --misaligned $< 2> $@
@@ -73,11 +73,11 @@ vpath %.S $(src_dir)
 define compile_template
 
 $$($(1)_p_tests): $(1)-p-%: $(1)/%.S
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(src_dir)/../env/p -I$(src_dir)/macros/scalar -T$(src_dir)/../env/p/link.ld $$< -o $(BUILD_DIR)/$$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -I$(src_dir)/../env/p -I$(src_dir)/macros/scalar -T$(src_dir)/../env/p/link.ld $$< -o $(BUILD_DIR)/$$@.elf
 $(1)_tests += $$($(1)_p_tests)
 
 $$($(1)_v_tests): $(1)-v-%: $(1)/%.S
-	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(src_dir)/../env/v -I$(src_dir)/macros/scalar -T$(src_dir)/../env/v/link.ld $(src_dir)/../env/v/entry.S $(src_dir)/../env/v/*.c $$< -o $(BUILD_DIR)/$$@
+	$$(RISCV_GCC) $(2) $$(RISCV_GCC_OPTS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(src_dir)/../env/v -I$(src_dir)/macros/scalar -T$(src_dir)/../env/v/link.ld $(src_dir)/../env/v/entry.S $(src_dir)/../env/v/*.c $$< -o $(BUILD_DIR)/$$@.elf
 $(1)_tests += $$($(1)_v_tests)
 
 $(1)_tests_dump = $$(addsuffix .dump, $$($(1)_tests))
